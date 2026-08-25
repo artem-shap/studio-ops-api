@@ -253,3 +253,64 @@ it correct for a given codebase. This one was well-made and still wrong here,
 because it could not know what this project is.
 
 **Commit:** `8c5441a`
+
+
+---
+
+## 13. Four deploy failures, three wrong diagnoses, one log
+
+The first real build of the Dockerfile failed. Rather than read the log, the
+next two changes were reasoned from the code: the base image was switched from
+Alpine to Debian on the theory that the starter kit's glibc-only native
+binaries could not load on musl, and Composer was copied in explicitly on the
+theory that it might be missing.
+
+Both changes were correct. Both explanations were wrong.
+
+The build log said, in one line each time:
+
+1. `composer install` exited **127** — Composer was not in the Alpine image at
+   all, so the musl theory was never even reached
+2. `The zip extension and unzip/7z commands are both missing` — Composer cannot
+   unpack `--prefer-dist` archives without it
+3. `exec: frankenphp: Operation not permitted` — the image gives the binary
+   `cap_net_bind_service`, and `execve` on a file carrying capabilities fails
+   with EPERM on a host that drops them
+4. `No open ports detected on 0.0.0.0` — `frankenphp run` without `--config`
+   starts Caddy with an empty configuration: the admin endpoint comes up on
+   localhost and nothing ever serves the site
+
+The fourth was self-inflicted. `--config` was in the first version of the
+entrypoint and was dropped while tidying it.
+
+**What this is actually about:** the model had access to the logs the whole
+time and guessed twice before reading them. Guessing produced changes that
+happened to be right, which is worse than being wrong — it looked like the
+method was working. Reading the log took one API call and gave an exact answer
+each time. That is the lesson, not the four individual fixes.
+
+**Commit:** `b7e817c` and the three before it
+
+---
+
+## 14. Every pasted value carried a trailing newline
+
+**Generated:** nothing. This came from the platform's own Blueprint form, whose
+fields are textareas.
+
+**Why it mattered:** all seven values entered by hand arrived with a trailing
+`\n`. The ones declared in `render.yaml` were clean. The container reached
+`config:cache` and died on `Invalid URI: A URI cannot contain CR/LF/TAB
+characters`, which names the symptom but not the cause, and does not mention
+which variable.
+
+`APP_URL` was only the first casualty. `DB_HOST` would not have resolved and
+`STUDIO_API_KEY` would not have matched the value on the other side — a
+mismatch that presents as a plain 401 with nothing pointing at whitespace.
+
+**Fixed:** read every variable back through the API, compared each against its
+own `strip()`, and rewrote the seven that differed. Worth keeping as a habit:
+after entering configuration by hand, read it back and diff it against what
+was intended, rather than trusting that the form stored what was typed.
+
+**Commit:** environment fix, no code change
