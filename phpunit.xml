@@ -23,8 +23,11 @@
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
-        <env name="DB_CONNECTION" value="sqlite"/>
-        <env name="DB_DATABASE" value=":memory:"/>
+        <!-- Tests run on PostgreSQL, the engine production runs on. In-memory
+             SQLite is faster, but a suite that runs on a different engine than
+             production cannot see engine-specific bugs. A separate database
+             keeps RefreshDatabase away from development data. -->
+        <env name="DB_DATABASE" value="studio_ops_api_test"/>
         <env name="DB_URL" value=""/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
