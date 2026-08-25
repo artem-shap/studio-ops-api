@@ -218,3 +218,38 @@ test asserting the status actually changed, rather than asserting the response
 was a redirect.
 
 **Commit:** `05a15c5`
+
+
+---
+
+## 12. Vendor onboarding that would have installed the wrong architecture
+
+**Generated:** nothing — this one arrived as a command from Neon's console,
+addressed to the agent: `neon init --agent --data '{"step":"getting-started",
+"framework":"next","features":["database","auth"]}'`. It is the sanctioned path,
+it comes from the vendor, and running it verbatim is the obvious move.
+
+**Why it was wrong:** its payload describes a Next.js application that owns a
+database and handles its own authentication. This project is the opposite on
+both counts. Running the flow to completion would have written `DATABASE_URL`
+into the Next.js environment, installed `@neondatabase/serverless` into
+`studio-ops-web`, and then continued to a Neon Auth setup step — giving the
+application a database client it must not have, next to a second authentication
+system nobody would use, in the repository whose own `CLAUDE.md` says in the
+first paragraph that it holds no database and no business logic.
+
+Nothing would have errored. The result would have been a codebase quietly
+contradicting its own documented architecture.
+
+**Fixed:** ran the first three steps, which are architecture-neutral — pick the
+organisation, pick the project, record the ids in `.neon`. Then stopped, and did
+the rest by hand against the application that actually owns the database: parsed
+the connection string into `DB_*` for Laravel, created the test database,
+migrated and seeded, and verified from PHP over TLS. Skipped the driver install
+and the Neon Auth step entirely.
+
+The general shape is worth keeping: an instruction being official does not make
+it correct for a given codebase. This one was well-made and still wrong here,
+because it could not know what this project is.
+
+**Commit:** `8c5441a`
