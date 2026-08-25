@@ -1,5 +1,12 @@
 packages:
   - '.'
 
+# unrs-resolver builds the native resolver eslint-import-resolver-typescript needs.
+# vue-demi selects the Vue 3 build for @vueuse/core.
+# Both are required; pnpm 11 fails the pre-run dependency check while they are unresolved.
+allowBuilds:
+  unrs-resolver: true
+  vue-demi: true
+
 publicHoistPattern:
   - '@inertiajs/core'
