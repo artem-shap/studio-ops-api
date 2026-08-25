@@ -56,7 +56,7 @@ Production runs on free-tier infrastructure. Three properties of that environmen
 
 **SQLite was considered and rejected** for the same reason. It would remove the database service entirely, but the database file would be wiped on every restart. The scaffold creates `database/database.sqlite` by default; it was deleted deliberately, and it is not reintroduced for tests either. Tests run against PostgreSQL, because tests that run on a different engine than production are tests that miss engine-specific bugs.
 
-**The service sleeps after 15 minutes of inactivity** and takes roughly a minute to wake. Boot work is therefore kept minimal: no heavy work in service providers, configuration and routes cached at build time. Consumers are expected to use a generous timeout and one retry, and `studio-ops-web` does.
+**The service sleeps after 15 minutes of inactivity** and takes roughly a minute to wake. Boot work is therefore kept minimal: no heavy work in service providers. Configuration, routes and views are cached by the entrypoint at container start rather than during the image build, because `config:cache` resolves `env()` when it runs and the environment does not exist until runtime. Consumers are expected to use a generous timeout and one retry, and `studio-ops-web` does.
 
 **There is no native PHP runtime on the host**, so the application ships with a `Dockerfile` built on a FrankenPHP base image. It is kept minimal and readable, because it is part of what gets reviewed.
 

@@ -75,7 +75,9 @@ Production runs on a free tier with an **ephemeral filesystem**. Anything writte
 
 **SQLite is deliberately not used.** The scaffold created `database/database.sqlite`; it was deleted on purpose. The filesystem is ephemeral, so a SQLite database would be wiped on every restart. The database is external PostgreSQL, on Neon, both locally and in production. Do not reintroduce a SQLite file, including for tests.
 
-The service sleeps after 15 minutes of inactivity and takes roughly a minute to wake. Keep boot work minimal: no heavy work in service providers, configuration and routes cached at build time.
+The service sleeps after 15 minutes of inactivity and takes roughly a minute to wake. Keep boot work minimal: no heavy work in service providers.
+
+Configuration, routes and views are cached by `docker-entrypoint.sh` at container start, **not** during the image build. `config:cache` resolves every `env()` call at the moment it runs, and the environment only exists at runtime on this host, so caching at build time freezes empty values and fails after deployment with no obvious link to the Dockerfile. Do not move these commands into the Dockerfile.
 
 Render has no native PHP runtime, so the application ships with a `Dockerfile` on a FrankenPHP base image. Keep it minimal and readable — it is part of what gets reviewed.
 
