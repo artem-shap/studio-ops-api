@@ -1,0 +1,367 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Laravel",
+        "version": "0.0.1"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000/api"
+        }
+    ],
+    "paths": {
+        "/inquiries": {
+            "post": {
+                "operationId": "inquiries.store",
+                "tags": [
+                    "Inquiry"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StoreInquiryRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Nothing about the inquiry goes back over the wire. The sender learns\nthat it arrived, and that is all they need.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "id": {}
+                                    },
+                                    "required": [
+                                        "id"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/portal/{token}": {
+            "get": {
+                "operationId": "portal.show",
+                "tags": [
+                    "Portal"
+                ],
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "`PortalResource`",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/PortalResource"
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "$ref": "#/components/responses/ModelNotFoundException"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "MilestoneResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "due_date": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "status": {
+                        "type": "object",
+                        "description": "The enum ships its own presentation so the admin panel and the\nportal cannot end up with two different status-to-colour maps.",
+                        "properties": {
+                            "value": {
+                                "type": "string"
+                            },
+                            "label": {
+                                "type": "string",
+                                "enum": [
+                                    "Pending",
+                                    "In progress",
+                                    "Done"
+                                ]
+                            },
+                            "color": {
+                                "type": "string",
+                                "enum": [
+                                    "slate",
+                                    "blue",
+                                    "emerald"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "value",
+                            "label",
+                            "color"
+                        ]
+                    }
+                },
+                "required": [
+                    "id",
+                    "title",
+                    "due_date",
+                    "status"
+                ],
+                "title": "MilestoneResource"
+            },
+            "PortalResource": {
+                "type": "object",
+                "properties": {
+                    "client": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "company": {
+                                "type": [
+                                    "string",
+                                    "null"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "company"
+                        ]
+                    },
+                    "projects": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ProjectResource"
+                        }
+                    }
+                },
+                "required": [
+                    "client"
+                ],
+                "title": "PortalResource"
+            },
+            "ProjectResource": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "status": {
+                        "type": "object",
+                        "properties": {
+                            "value": {
+                                "type": "string"
+                            },
+                            "label": {
+                                "type": "string",
+                                "enum": [
+                                    "Draft",
+                                    "Active",
+                                    "On hold",
+                                    "Completed"
+                                ]
+                            },
+                            "color": {
+                                "type": "string",
+                                "enum": [
+                                    "slate",
+                                    "blue",
+                                    "amber",
+                                    "emerald"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "value",
+                            "label",
+                            "color"
+                        ]
+                    },
+                    "budget_cents": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ],
+                        "description": "Minor units and a currency code. Formatting is presentation, and\npresentation belongs to whichever client is rendering it."
+                    },
+                    "currency": {
+                        "type": "string"
+                    },
+                    "start_date": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "due_date": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "milestones": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MilestoneResource"
+                        }
+                    }
+                },
+                "required": [
+                    "id",
+                    "title",
+                    "description",
+                    "status",
+                    "budget_cents",
+                    "currency",
+                    "start_date",
+                    "due_date"
+                ],
+                "title": "ProjectResource"
+            },
+            "StoreInquiryRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "maxLength": 120
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "maxLength": 255
+                    },
+                    "company": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 160
+                    },
+                    "message": {
+                        "type": "string",
+                        "minLength": 20,
+                        "maxLength": 2000
+                    },
+                    "budget_range": {
+                        "type": [
+                            "string",
+                            "null"
+                        ],
+                        "maxLength": 40
+                    },
+                    "website": {
+                        "type": "string",
+                        "description": "Present and empty. Filled means a bot, and it is rejected as an\nordinary validation failure so the sender learns nothing."
+                    }
+                },
+                "required": [
+                    "name",
+                    "email",
+                    "message",
+                    "website"
+                ],
+                "title": "StoreInquiryRequest"
+            }
+        },
+        "responses": {
+            "ValidationException": {
+                "description": "Validation error",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Errors overview."
+                                },
+                                "errors": {
+                                    "type": "object",
+                                    "description": "A detailed description of each field that failed validation.",
+                                    "additionalProperties": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            },
+                            "required": [
+                                "message",
+                                "errors"
+                            ]
+                        }
+                    }
+                }
+            },
+            "ModelNotFoundException": {
+                "description": "Not found",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "message": {
+                                    "type": "string",
+                                    "description": "Error overview."
+                                }
+                            },
+                            "required": [
+                                "message"
+                            ]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

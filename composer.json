@@ -18,6 +18,7 @@
         "laravel/wayfinder": "^0.1.14"
     },
     "require-dev": {
+        "dedoc/scramble": "*",
         "fakerphp/faker": "^1.24",
         "larastan/larastan": "^3.9",
         "laravel/boost": "^2.2",
@@ -67,7 +68,8 @@
             "npm run lint:check",
             "npm run format:check",
             "npm run types:check",
-            "@test"
+            "@test",
+            "@openapi:check"
         ],
         "types:check": [
             "phpstan analyse --memory-limit=512M"
@@ -96,6 +98,13 @@
         ],
         "pre-package-uninstall": [
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
+        ],
+        "openapi": [
+            "@php artisan scramble:export --path=openapi.json"
+        ],
+        "openapi:check": [
+            "@php artisan scramble:export --path=openapi.json",
+            "@php -r \"exit(shell_exec('git status --porcelain openapi.json') === '' ? 0 : (fwrite(STDERR, 'openapi.json is out of date; run composer openapi and commit it.'.PHP_EOL) ? 1 : 1));\""
         ]
     },
     "extra": {
