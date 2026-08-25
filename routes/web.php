@@ -1,15 +1,22 @@
 <?php
 
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InquiryController;
 use App\Http\Controllers\MilestoneController;
 use App\Http\Controllers\ProjectController;
 use Illuminate\Support\Facades\Route;
 
-Route::inertia('/', 'Welcome')->name('home');
+/*
+ * The admin panel is an internal tool with no public face. Root sends staff to
+ * the dashboard and everyone else to the login screen, rather than serving a
+ * marketing page nobody asked for.
+ */
+Route::get('/', fn () => redirect()->route(auth()->check() ? 'dashboard' : 'login'))
+    ->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'Dashboard')->name('dashboard');
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
 });
 
 require __DIR__.'/settings.php';

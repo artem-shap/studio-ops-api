@@ -1,7 +1,7 @@
 {
     "openapi": "3.1.0",
     "info": {
-        "title": "Laravel",
+        "title": "StudioOps",
         "version": "0.0.1"
     },
     "servers": [

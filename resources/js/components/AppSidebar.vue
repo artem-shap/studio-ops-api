@@ -1,13 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import {
-    BookOpen,
-    FolderGit2,
-    Inbox,
-    LayoutGrid,
-    SquareKanban,
-    Users,
-} from '@lucide/vue';
+import { Inbox, LayoutGrid, SquareKanban, Users } from '@lucide/vue';
 import ClientController from '@/actions/App/Http/Controllers/ClientController';
 import InquiryController from '@/actions/App/Http/Controllers/InquiryController';
 import ProjectController from '@/actions/App/Http/Controllers/ProjectController';
@@ -50,18 +43,7 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: FolderGit2,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
-        icon: BookOpen,
-    },
-];
+const footerNavItems: NavItem[] = [];
 </script>
 
 <template>
