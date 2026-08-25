@@ -55,3 +55,64 @@ created, `git status` never mentions it, and it is missing from the clone.
 not appear in `git status` when it should have.
 
 **Commit:** `e2e945d` in `studio-ops-web`
+
+
+---
+
+## 4. A Dockerfile whose build stage could not run the build
+
+**Generated:** a conventional two-stage Dockerfile — `node:22-alpine` to build
+the frontend, then FrankenPHP for the runtime. It is the right shape for most
+PHP projects and it is what the pattern looks like everywhere.
+
+**Why it was wrong:** Wayfinder generates its TypeScript route helpers by
+invoking `artisan` during the Vite build. A Node-only stage has no PHP, so
+`pnpm run build` would have died on the first deploy. Nothing local catches
+this: the build works on a machine that has both.
+
+**Fixed:** the build stage is now FrankenPHP with Node added to it, so PHP is
+present when Vite calls artisan. Node and the dev dependencies are dropped
+before the runtime stage, so the shipped image is no larger for it.
+
+**Commit:** `ac0695c`
+
+---
+
+## 5. Caching configuration at image build time
+
+**Generated:** `php artisan config:cache` as a build step in the Dockerfile,
+next to `route:cache` and `view:cache`. This was also written into `CLAUDE.md`
+as a standing instruction, so it would have been repeated.
+
+**Why it was wrong:** `config:cache` resolves every `env()` call at the moment
+the cache is written. The build runs before the host injects the environment,
+so the cache would have frozen empty values — no database credentials, no app
+key — and the failure would have appeared only after deploying, as a runtime
+error with no obvious link to the Dockerfile.
+
+**Fixed:** all three caches moved into the entrypoint, and the standing
+instruction in `CLAUDE.md` corrected along with them. The cost is about a tenth
+of a second on a cold start that already takes most of a minute.
+
+**Commit:** `ac0695c`
+
+---
+
+## 6. The test suite ran on a different engine than production
+
+**Generated:** nothing — this one came with the framework's default
+`phpunit.xml`, which forces `DB_CONNECTION=sqlite` and `:memory:`.
+
+**Why it was wrong:** the project had already committed, in writing, to running
+tests on the engine production runs on, and a PostgreSQL service had just been
+added to CI for that purpose. The default quietly contradicted both. It is
+included here because the lesson is the same one: a generated or scaffolded
+default is an assumption, and assumptions that contradict a written decision are
+worth finding before they hide a bug rather than after.
+
+**Fixed:** removed the SQLite override and pointed the suite at a separate
+PostgreSQL database, so `RefreshDatabase` never touches development data. The
+39 existing tests pass in 1.4s against PostgreSQL versus 1.2s against in-memory
+SQLite, which is not a trade worth making.
+
+**Commit:** `ac0695c`
