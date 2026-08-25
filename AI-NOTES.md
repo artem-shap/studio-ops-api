@@ -116,3 +116,43 @@ PostgreSQL database, so `RefreshDatabase` never touches development data. The
 SQLite, which is not a trade worth making.
 
 **Commit:** `ac0695c`
+
+
+---
+
+## 7. findOrFail inside a transaction, and the union type it hides
+
+**Generated:** `Inquiry::query()->lockForUpdate()->findOrFail($id)` at the top of
+`ConvertInquiry`, to re-read the row under a lock before checking the guard.
+
+**Why it was wrong:** `findOrFail` also accepts an array of keys, so its return
+type is `Model|Collection`. Every property read after it — `$inquiry->email`,
+`$inquiry->isConverted()` — was therefore untypeable, and Larastan produced nine
+errors from one line. The code would have run correctly; the types were the
+thing that was wrong, and the tempting fix is a `@var` annotation that asserts
+what the developer already believes.
+
+**Fixed:** `whereKey($id)->lockForUpdate()->firstOrFail()`, which returns a
+single model and nothing else. The annotation would have silenced the analyser
+while leaving the ambiguity in place. No baseline, no ignore, no cast.
+
+**Commit:** `aa0afa0`
+
+---
+
+## 8. Sanctum, nearly installed for an API with no users
+
+**Generated:** the standard advice for adding an API to Laravel 11 and later is
+`php artisan install:api`, and that was the first move here.
+
+**Why it was wrong:** that command installs Sanctum and a personal access token
+migration. This API has no users at all — it is two servers authenticating to
+each other with a shared secret header. Sanctum would have shipped an unused
+dependency, an unused table, and an obvious question for whoever read the code
+next: which token model is this project using, and why can I not find it.
+
+**Fixed:** `routes/api.php` written by hand and registered in
+`bootstrap/app.php`. The reasoning is a comment at the top of the routes file,
+because the absence of a thing is harder to explain later than its presence.
+
+**Commit:** `aa0afa0`
