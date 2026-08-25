@@ -187,6 +187,8 @@ composer test            # Pint check, PHPStan, Pest
 composer ci:check        # everything CI runs
 composer lint            # Pint, writing changes
 pnpm types:check         # vue-tsc
+composer openapi         # regenerate the OpenAPI contract
+composer openapi:check   # regenerate and fail if it drifted
 
 php artisan migrate:fresh --seed   # database from zero
 php artisan demo:reset             # restore the demo to a clean state
