@@ -35,7 +35,7 @@ class ProjectFactory extends Factory
 
         return [
             'client_id' => Client::factory(),
-            'title' => fake()->unique()->randomElement(self::TITLES),
+            'title' => fake()->randomElement(self::TITLES),
             'description' => fake()->paragraph(),
             'status' => fake()->randomElement(ProjectStatus::cases()),
 

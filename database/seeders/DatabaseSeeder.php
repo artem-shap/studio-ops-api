@@ -29,6 +29,8 @@ class DatabaseSeeder extends Seeder
 
     public const DEMO_PASSWORD = 'studioops';
 
+    private int $projectsCreated = 0;
+
     public function run(): void
     {
         User::factory()->create([
@@ -51,13 +53,19 @@ class DatabaseSeeder extends Seeder
                 // The first client's link is the one the README publishes.
                 $demoPortalToken ??= $token;
 
+                // Walk the statuses so the demo shows every state, rather than
+                // whatever the random draw happened to produce.
+                $statuses = ProjectStatus::cases();
                 $projectCount = $index < 2 ? 2 : 1;
 
-                Project::factory()
-                    ->count($projectCount)
-                    ->for($client)
-                    ->create()
-                    ->each($this->seedMilestones(...));
+                for ($n = 0; $n < $projectCount; $n++) {
+                    $project = Project::factory()
+                        ->for($client)
+                        ->status($statuses[$this->projectsCreated++ % count($statuses)])
+                        ->create();
+
+                    $this->seedMilestones($project);
+                }
             });
 
         $this->seedInquiries();
