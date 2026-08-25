@@ -10,7 +10,10 @@ FROM dunglas/frankenphp:1.12-php8.5-trixie AS builder
 # Composer comes from its own image rather than being assumed present.
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-RUN install-php-extensions pdo_pgsql opcache intl
+# zip is what Composer uses to unpack --prefer-dist archives. Without it the
+# install dies on the first package with "The zip extension and unzip/7z
+# commands are both missing", before any application code is touched.
+RUN install-php-extensions pdo_pgsql opcache intl zip
 
 # Node lives in the build stage only. It is here rather than in a separate node
 # stage because Wayfinder generates its TypeScript route helpers by invoking
