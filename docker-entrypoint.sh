@@ -22,4 +22,18 @@ php artisan migrate --force
 # which is what is wanted behind the platform's own TLS terminator.
 export SERVER_NAME=":${PORT:-8080}"
 
-exec frankenphp run
+# --config is not optional. `frankenphp run` on its own starts Caddy with an
+# empty configuration: the admin endpoint comes up on localhost:2019 and
+# nothing ever listens on 0.0.0.0, so the platform's port scan finds nothing
+# and times out while the container sits there looking healthy.
+CADDYFILE=/etc/frankenphp/Caddyfile
+[ -f "$CADDYFILE" ] || CADDYFILE=/etc/caddy/Caddyfile
+
+if [ ! -f "$CADDYFILE" ]; then
+    echo "No Caddyfile found at either known path; refusing to start blind." >&2
+    exit 1
+fi
+
+echo "Serving on ${SERVER_NAME} using ${CADDYFILE}"
+
+exec frankenphp run --config "$CADDYFILE"
