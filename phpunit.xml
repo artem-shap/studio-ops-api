@@ -28,6 +28,7 @@
              production cannot see engine-specific bugs. A separate database
              keeps RefreshDatabase away from development data. -->
         <env name="DB_DATABASE" value="studio_ops_api_test"/>
+        <env name="STUDIO_API_KEY" value="testing-studio-key"/>
         <env name="DB_URL" value=""/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>

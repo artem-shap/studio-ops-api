@@ -40,6 +40,26 @@ class Client extends Model
     }
 
     /**
+     * Resolve a plain portal token to its client, or null.
+     *
+     * The lookup is by hash because the plain token was never stored. Expiry and
+     * revocation are applied here rather than by the caller, so there is exactly
+     * one path that can turn a token into a client.
+     */
+    public static function findByPortalToken(string $token): ?self
+    {
+        $client = static::query()
+            ->where('portal_token_hash', hash('sha256', $token))
+            ->first();
+
+        if ($client === null || ! $client->hasActivePortalAccess()) {
+            return null;
+        }
+
+        return $client;
+    }
+
+    /**
      * Whether the portal link currently works. Expiry and revocation are
      * checked together so a caller cannot forget one of them.
      */

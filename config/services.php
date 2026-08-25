@@ -3,6 +3,15 @@
 return [
 
     /*
+     * The secret studio-ops-web sends as X-Studio-Key. There is no user session
+     * on the public API: these two servers authenticate to each other and to
+     * nobody else.
+     */
+    'studio' => [
+        'api_key' => env('STUDIO_API_KEY'),
+    ],
+
+    /*
     |--------------------------------------------------------------------------
     | Third Party Services
     |--------------------------------------------------------------------------

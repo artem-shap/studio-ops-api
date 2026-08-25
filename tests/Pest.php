@@ -44,7 +44,13 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * The header studio-ops-web sends on every public API request. The matching
+ * value is set in phpunit.xml.
+ *
+ * @return array<string, string>
+ */
+function studioKey(): array
 {
-    // ..
+    return ['X-Studio-Key' => 'testing-studio-key'];
 }
