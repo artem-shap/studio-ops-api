@@ -144,6 +144,25 @@ Pest 5. Four feature tests are mandatory and must stay green:
 
 New business logic in an Action class ships with a test. Vue components are not unit-tested — the cost outweighs the signal at this size, and that is a deliberate choice rather than an omission.
 
+
+### Where the test database lives
+
+Tests run against whatever `DB_*` points at, in a separate `studio_ops_api_test`
+database so `RefreshDatabase` never touches development data.
+
+That choice has a measured cost. `RefreshDatabase` rebuilds the schema per test,
+so every statement is a network round trip when the target is remote:
+
+| Target | 97 tests |
+|---|---|
+| PostgreSQL on localhost | ~2s |
+| Neon over the network | ~74s |
+
+CI uses a PostgreSQL service container on the runner and stays in the first row.
+For the local loop, run PostgreSQL locally and keep the Neon branch for data you
+want to persist between sessions. Same engine and same major version either way,
+which is the property that actually matters.
+
 ---
 
 ## Continuous integration
