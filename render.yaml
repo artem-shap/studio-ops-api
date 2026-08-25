@@ -1,0 +1,71 @@
+# Render Blueprint. Connecting the repository provisions the service from this
+# file rather than from a form, so the deployment is reviewable in the diff and
+# reproducible from scratch.
+#
+# Values marked `sync: false` are secrets: Render prompts for them once and
+# never stores them here. Everything else is configuration and belongs in git.
+
+services:
+  - type: web
+    name: studio-ops-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: frankfurt
+    healthCheckPath: /up
+    autoDeployTrigger: commit
+
+    envVars:
+      - key: APP_NAME
+        value: StudioOps
+      - key: APP_ENV
+        value: production
+
+      # The application refuses to boot if this is ever true in production.
+      # See AppServiceProvider::refuseToRunWithDebugInProduction.
+      - key: APP_DEBUG
+        value: "false"
+
+      # Generate with: php artisan key:generate --show
+      # It must carry the base64: prefix; Render's generated values do not.
+      - key: APP_KEY
+        sync: false
+
+      # The service's own https://…onrender.com URL, filled in after the first deploy.
+      - key: APP_URL
+        sync: false
+
+      # The filesystem is ephemeral: logs go to stdout, and nothing that must
+      # survive a restart may touch disk.
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: warning
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
+
+      # PostgreSQL on Neon. Render's own free PostgreSQL expires after 30 days,
+      # which is shorter than this project needs to stay demonstrable.
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_DATABASE
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_SSLMODE
+        value: require
+
+      # Shared with studio-ops-web. Generate with:
+      #   php -r "echo bin2hex(random_bytes(32)), PHP_EOL;"
+      - key: STUDIO_API_KEY
+        sync: false
