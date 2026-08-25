@@ -104,7 +104,7 @@
         ],
         "openapi:check": [
             "@php artisan scramble:export --path=openapi.json",
-            "@php -r \"exit(shell_exec('git status --porcelain openapi.json') === '' ? 0 : (fwrite(STDERR, 'openapi.json is out of date; run composer openapi and commit it.'.PHP_EOL) ? 1 : 1));\""
+            "git diff --exit-code -- openapi.json"
         ]
     },
     "extra": {
