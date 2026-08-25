@@ -177,7 +177,7 @@ the current one.
 was corrected along with them. This is the specific failure mode Laravel Boost
 exists to prevent, and the reason its guidelines block is committed next to ours.
 
-**Commit:** see the Day 2 admin panel commit
+**Commit:** `05a15c5`
 
 ---
 
@@ -197,7 +197,7 @@ message, green exit code, broken build waiting to be discovered.
 generalises: when a tool is wired into a build pipeline with configuration,
 running its underlying command directly discards that configuration.
 
-**Commit:** see the Day 2 admin panel commit
+**Commit:** `05a15c5`
 
 ---
 
@@ -217,4 +217,4 @@ the guard for a value the controller has already validated itself. Found by a
 test asserting the status actually changed, rather than asserting the response
 was a redirect.
 
-**Commit:** see the Day 2 admin panel commit
+**Commit:** `05a15c5`
