@@ -60,6 +60,14 @@ COPY --from=builder /app /app
 # either: view:cache fails at startup with "Please provide a valid cache path".
 RUN mkdir -p       storage/framework/cache/data       storage/framework/sessions       storage/framework/views       storage/logs       bootstrap/cache  && chmod -R 775 storage bootstrap/cache
 
+# The image gives frankenphp the cap_net_bind_service file capability so it can
+# bind :80. Hosts that drop Linux capabilities make execve() on a binary
+# carrying them fail outright with EPERM — the container reaches the last line
+# of the entrypoint and dies with "Operation not permitted", after migrations
+# have already run. The port here comes from $PORT and is never privileged, so
+# the capability is dead weight and removing it is what makes exec work.
+RUN command -v setcap >/dev/null 2>&1  || { apt-get update && apt-get install -y --no-install-recommends libcap2-bin && rm -rf /var/lib/apt/lists/*; };     setcap -r /usr/local/bin/frankenphp || true
+
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
