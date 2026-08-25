@@ -156,3 +156,65 @@ next: which token model is this project using, and why can I not find it.
 because the absence of a thing is harder to explain later than its presence.
 
 **Commit:** `aa0afa0`
+
+
+---
+
+## 9. useForm, the idiom this project does not use
+
+**Generated:** Vue pages built around `useForm` from `@inertiajs/vue3`, which is
+what almost every Inertia example shows. It was also written into `CLAUDE.md` as
+a standing rule, so every future page would have repeated it.
+
+**Why it was wrong:** this project is on Inertia 3, where forms are the `<Form>`
+component bound to a Wayfinder action — `v-bind="ClientController.store.form()"`.
+The starter kit's own settings pages were sitting right there using it. `useForm`
+still exists, so nothing would have failed; the code would simply have been
+written against the previous major version, in a codebase whose other pages use
+the current one.
+
+**Fixed:** every admin page uses `<Form>`, and the standing rule in `CLAUDE.md`
+was corrected along with them. This is the specific failure mode Laravel Boost
+exists to prevent, and the reason its guidelines block is committed next to ours.
+
+**Commit:** see the Day 2 admin panel commit
+
+---
+
+## 10. artisan wayfinder:generate quietly deleted the form helpers
+
+**Generated:** `php artisan wayfinder:generate` to produce route helpers for the
+new controllers. The command exists, it is the obvious one, and it reported
+success.
+
+**Why it was wrong:** the `.form()` variants are produced by the Vite plugin,
+configured with `formVariants: true` in `vite.config.ts`. The bare artisan
+command regenerates the same directory **without** them — so it removed the
+helpers the starter kit's own profile page was already importing. Success
+message, green exit code, broken build waiting to be discovered.
+
+**Fixed:** regenerated through `pnpm build`, which runs the plugin. The lesson
+generalises: when a tool is wired into a build pipeline with configuration,
+running its underlying command directly discards that configuration.
+
+**Commit:** see the Day 2 admin panel commit
+
+---
+
+## 11. update() silently dropped a guarded attribute
+
+**Generated:** `$inquiry->update($validated)` in the inquiry status controller,
+which is the ordinary way to apply validated input.
+
+**Why it was wrong:** `status` is deliberately outside `#[Fillable]` on
+`Inquiry`, precisely so no request body can set it. Mass assignment therefore
+discarded it — without an error, without a log line, with a success redirect and
+a flash message saying the inquiry had been updated. The endpoint reported doing
+something it had not done.
+
+**Fixed:** `forceFill($validated)->save()`, which is explicit about bypassing
+the guard for a value the controller has already validated itself. Found by a
+test asserting the status actually changed, rather than asserting the response
+was a redirect.
+
+**Commit:** see the Day 2 admin panel commit

@@ -127,7 +127,9 @@ API Resources serialise a status as `{ value, label, color }`, so the status-to-
 
 - Composition API, `<script setup>`, TypeScript
 - `defineProps<T>()` with real types, never an array of strings
-- Inertia's `useForm` for every form — not `fetch`, not `axios`
+- Inertia 3's `<Form>` component bound to a Wayfinder action — `v-bind="ClientController.store.form()"` —
+  not `useForm`, not `fetch`, not `axios`. `useForm` is the Inertia 2 idiom and this project is on Inertia 3;
+  the starter kit's own pages show the current one
 - Wayfinder helpers for route URLs
 - shadcn-vue components via its CLI into `resources/js/components/ui/`; edit those files directly rather than wrapping them
 - Small components. The page composes, the components render
