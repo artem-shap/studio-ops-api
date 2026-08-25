@@ -6,8 +6,9 @@ This repository is the **single source of truth**: the database, the business
 logic, the internal admin panel the studio works in, and the REST API consumed
 by [`studio-ops-web`](../studio-ops-web).
 
-> **Live demo:** _fill in after the first deploy_
+> **Live admin panel:** https://studio-ops-api-6nny.onrender.com
 > **Demo login:** `demo@studioops.dev` / `studioops`
+> **Public site:** https://studio-ops-web.vercel.app
 >
 > Hosted on a free tier that suspends after fifteen idle minutes. The first
 > request after a quiet spell takes about a minute while the container wakes.
