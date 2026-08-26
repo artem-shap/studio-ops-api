@@ -161,7 +161,13 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        /*
+         * Deliberately absent: Features::registration().
+         *
+         * This is a studio's internal panel. Anyone who can register can see
+         * every client, every project and every inquiry, and can issue portal
+         * links. Staff accounts are created with `php artisan staff:create`.
+         */
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::twoFactorAuthentication([

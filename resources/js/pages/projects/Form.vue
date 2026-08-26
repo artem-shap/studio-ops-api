@@ -2,11 +2,12 @@
 import { Form, Head, Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import ProjectController from '@/actions/App/Http/Controllers/ProjectController';
-import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
+import PageHeader from '@/components/PageHeader.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import type { ProjectFormValues, SelectOption, Status } from '@/types/studio';
 
 const props = defineProps<{
@@ -23,6 +24,9 @@ const submit = computed(() =>
         : ProjectController.update.form(props.project.id),
 );
 
+const selectClass =
+    'h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none';
+
 defineOptions({
     layout: {
         breadcrumbs: [
@@ -36,21 +40,29 @@ defineOptions({
     <Head :title="isEditing ? 'Edit project' : 'New project'" />
 
     <div class="flex h-full flex-1 flex-col gap-6 p-4">
-        <Heading
-            variant="small"
+        <PageHeader
             :title="isEditing ? 'Edit project' : 'New project'"
             description="Milestones are added on the project page once it exists"
-        />
+        >
+            <template v-if="isEditing" #actions>
+                <Button as-child size="sm" variant="outline">
+                    <Link :href="ProjectController.show(project!.id).url">
+                        Back to project
+                    </Link>
+                </Button>
+            </template>
+        </PageHeader>
 
         <Form
             v-bind="submit"
-            class="max-w-xl space-y-6"
+            class="flex max-w-2xl flex-col gap-6 rounded-xl border border-sidebar-border/70 p-6 dark:border-sidebar-border"
             v-slot="{ errors, processing }"
         >
             <!--
-                Only on create. Moving a project between clients would move a
-                portal link's contents too, which is a different operation with
-                different consequences than editing a title.
+                Client is set once, on creation. Moving a project between
+                clients would move a portal link's contents with it, which is a
+                different operation with different consequences than editing a
+                title, and it should not hide behind the same Save button.
             -->
             <div v-if="!isEditing" class="grid gap-2">
                 <Label for="client_id">Client</Label>
@@ -58,7 +70,7 @@ defineOptions({
                     id="client_id"
                     name="client_id"
                     required
-                    class="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
+                    :class="selectClass"
                 >
                     <option
                         v-for="option in clients"
@@ -78,75 +90,77 @@ defineOptions({
                     name="title"
                     :default-value="project?.title"
                     required
+                    :aria-invalid="errors.title ? true : undefined"
                 />
                 <InputError :message="errors.title" />
             </div>
 
             <div class="grid gap-2">
                 <Label for="description">Description</Label>
-                <!--
-                    :value rather than interpolated content. A mustache inside a
-                    textarea is not how Vue sets a textarea's value, and the
-                    field can render with the raw template instead of the text.
-                -->
-                <textarea
+                <Textarea
                     id="description"
                     name="description"
                     rows="4"
-                    :value="project?.description ?? ''"
-                    class="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
-                ></textarea>
+                    :default-value="project?.description ?? ''"
+                    class="leading-relaxed"
+                />
+                <p class="text-xs text-muted-foreground">
+                    The client sees this in their portal.
+                </p>
                 <InputError :message="errors.description" />
             </div>
 
-            <div class="grid gap-2">
-                <Label for="status">Status</Label>
-                <select
-                    id="status"
-                    name="status"
-                    required
-                    class="h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
-                >
-                    <option
-                        v-for="status in statuses"
-                        :key="status.value"
-                        :value="status.value"
-                        :selected="project?.status === status.value"
-                    >
-                        {{ status.label }}
-                    </option>
-                </select>
-                <InputError :message="errors.status" />
-            </div>
-
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid gap-5 sm:grid-cols-2">
                 <div class="grid gap-2">
-                    <!-- Whole units here; storage is minor units. Nobody types cents. -->
-                    <Label for="budget">Budget</Label>
-                    <Input
-                        id="budget"
-                        name="budget"
-                        type="number"
-                        min="0"
-                        step="100"
-                        :default-value="project?.budget ?? ''"
-                    />
-                    <InputError :message="errors.budget" />
-                </div>
-                <div class="grid gap-2">
-                    <Label for="currency">Currency</Label>
-                    <Input
-                        id="currency"
-                        name="currency"
-                        maxlength="3"
-                        :default-value="project?.currency ?? 'USD'"
+                    <Label for="status">Status</Label>
+                    <select
+                        id="status"
+                        name="status"
                         required
-                    />
-                    <InputError :message="errors.currency" />
+                        :class="selectClass"
+                    >
+                        <option
+                            v-for="status in statuses"
+                            :key="status.value"
+                            :value="status.value"
+                            :selected="project?.status === status.value"
+                        >
+                            {{ status.label }}
+                        </option>
+                    </select>
+                    <InputError :message="errors.status" />
+                </div>
+
+                <div class="grid grid-cols-[1fr_5rem] gap-3">
+                    <div class="grid gap-2">
+                        <Label for="budget">Budget</Label>
+                        <!-- Whole units here; storage is minor units. -->
+                        <Input
+                            id="budget"
+                            name="budget"
+                            type="number"
+                            min="0"
+                            step="100"
+                            :default-value="project?.budget ?? ''"
+                        />
+                        <InputError :message="errors.budget" />
+                    </div>
+                    <div class="grid gap-2">
+                        <Label for="currency">Currency</Label>
+                        <Input
+                            id="currency"
+                            name="currency"
+                            maxlength="3"
+                            :default-value="project?.currency ?? 'USD'"
+                            required
+                            class="uppercase"
+                        />
+                        <InputError :message="errors.currency" />
+                    </div>
                 </div>
             </div>
 
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid gap-5 sm:grid-cols-2">
                 <div class="grid gap-2">
                     <Label for="start_date">Start date</Label>
                     <Input
@@ -169,11 +183,13 @@ defineOptions({
                 </div>
             </div>
 
-            <div class="flex items-center gap-3">
-                <Button type="submit" :disabled="processing">
+            <div
+                class="flex items-center gap-3 border-t border-sidebar-border/40 pt-5"
+            >
+                <Button type="submit" size="sm" :disabled="processing">
                     {{ isEditing ? 'Save changes' : 'Create project' }}
                 </Button>
-                <Button as-child variant="ghost">
+                <Button as-child size="sm" variant="ghost">
                     <Link :href="ProjectController.index().url">Cancel</Link>
                 </Button>
             </div>

@@ -1,39 +1,41 @@
 <?php
 
-namespace Tests\Feature\Auth;
+use App\Models\User;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Laravel\Fortify\Features;
-use Tests\TestCase;
+/**
+ * Registration is deliberately off. Anyone holding an account here can read
+ * every client, every project and every inquiry, and can issue portal links —
+ * so accounts are created with `php artisan staff:create`, never self-served.
+ */
+it('does not expose a registration screen', function () {
+    $this->get('/register')->assertNotFound();
+});
 
-class RegistrationTest extends TestCase
-{
-    use RefreshDatabase;
+it('does not accept a registration attempt', function () {
+    $this->post('/register', [
+        'name' => 'Uninvited',
+        'email' => 'uninvited@example.com',
+        'password' => 'Password!2345',
+        'password_confirmation' => 'Password!2345',
+    ])->assertNotFound();
 
-    protected function setUp(): void
-    {
-        parent::setUp();
+    expect(User::query()->where('email', 'uninvited@example.com')->exists())->toBeFalse();
+});
 
-        $this->skipUnlessFortifyHas(Features::registration());
-    }
+it('creates a staff account through the console command', function () {
+    $this->artisan('staff:create', ['--name' => 'Dana Whitfield', '--email' => 'dana@studioops.dev'])
+        ->expectsQuestion('Password', 'Correct-Horse-Battery-9')
+        ->assertSuccessful();
 
-    public function test_registration_screen_can_be_rendered()
-    {
-        $response = $this->get(route('register'));
+    expect(User::query()->where('email', 'dana@studioops.dev')->exists())->toBeTrue();
+});
 
-        $response->assertOk();
-    }
+it('refuses a duplicate email', function () {
+    User::factory()->create(['email' => 'dana@studioops.dev']);
 
-    public function test_new_users_can_register()
-    {
-        $response = $this->post(route('register.store'), [
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-            'password' => 'password',
-            'password_confirmation' => 'password',
-        ]);
+    $this->artisan('staff:create', ['--name' => 'Someone Else', '--email' => 'dana@studioops.dev'])
+        ->expectsQuestion('Password', 'Correct-Horse-Battery-9')
+        ->assertFailed();
 
-        $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
-    }
-}
+    expect(User::query()->where('email', 'dana@studioops.dev')->count())->toBe(1);
+});
