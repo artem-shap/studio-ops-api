@@ -18,6 +18,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        /*
+         * The host terminates TLS and forwards X-Forwarded-Proto. Without
+         * trusting it Laravel believes every request arrived over plain HTTP
+         * and generates http:// URLs — redirects after login, asset URLs, and
+         * anything built with route(). The application is only reachable
+         * through that load balancer, so the proxy set is not narrowable to
+         * fixed addresses.
+         */
+        $middleware->trustProxies(at: '*');
+
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         $middleware->web(append: [
