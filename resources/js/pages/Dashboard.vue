@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { ArrowUpRight } from '@lucide/vue';
 import InquiryController from '@/actions/App/Http/Controllers/InquiryController';
 import ProjectController from '@/actions/App/Http/Controllers/ProjectController';
+import PageHeader from '@/components/PageHeader.vue';
+import StatCard from '@/components/StatCard.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/money';
@@ -39,21 +40,25 @@ const figures = [
         label: 'Open inquiries',
         value: props.stats.openInquiries,
         href: InquiryController.index().url,
+        tone: 'default' as const,
     },
     {
         label: 'Active projects',
         value: props.stats.activeProjects,
         href: ProjectController.index().url,
+        tone: 'default' as const,
     },
     {
         label: 'On hold',
         value: props.stats.projectsOnHold,
         href: ProjectController.index().url,
+        tone: 'default' as const,
     },
     {
         label: 'Overdue milestones',
         value: props.stats.overdueMilestones,
         href: ProjectController.index().url,
+        tone: 'alert' as const,
     },
 ];
 
@@ -68,44 +73,23 @@ defineOptions({
     <Head title="Dashboard" />
 
     <div class="flex h-full flex-1 flex-col gap-8 p-4">
-        <div>
-            <h1 class="text-xl font-semibold tracking-tight">Today</h1>
-            <p class="mt-1 text-sm text-muted-foreground">
-                What came in, what is running, and what is late.
-            </p>
-        </div>
+        <PageHeader
+            title="Today"
+            description="What came in, what is running, and what is late."
+        />
 
-        <dl
-            class="grid gap-px overflow-hidden rounded-xl border border-sidebar-border/70 bg-sidebar-border/50 sm:grid-cols-2 lg:grid-cols-4 dark:border-sidebar-border"
+        <div
+            class="grid gap-px overflow-hidden rounded-xl border border-sidebar-border/70 bg-sidebar-border/60 sm:grid-cols-2 lg:grid-cols-4 dark:border-sidebar-border"
         >
-            <Link
+            <StatCard
                 v-for="figure in figures"
                 :key="figure.label"
+                :label="figure.label"
+                :value="figure.value"
                 :href="figure.href"
-                class="group flex flex-col gap-1 bg-background p-5 transition-colors hover:bg-sidebar-accent/40"
-            >
-                <dt
-                    class="flex items-center gap-1 text-xs text-muted-foreground"
-                >
-                    {{ figure.label }}
-                    <ArrowUpRight
-                        class="size-3 opacity-0 transition-opacity group-hover:opacity-100"
-                        aria-hidden="true"
-                    />
-                </dt>
-                <dd
-                    class="text-3xl font-semibold tabular-nums"
-                    :class="
-                        figure.label === 'Overdue milestones' &&
-                        figure.value > 0
-                            ? 'text-rose-600 dark:text-rose-400'
-                            : ''
-                    "
-                >
-                    {{ figure.value }}
-                </dd>
-            </Link>
-        </dl>
+                :tone="figure.tone"
+            />
+        </div>
 
         <div class="grid gap-6 lg:grid-cols-2">
             <section
@@ -139,22 +123,22 @@ defineOptions({
                             <p class="text-xs text-muted-foreground">
                                 {{ inquiry.received_at }}
                                 <template v-if="inquiry.budget_range">
-                                    · {{ inquiry.budget_range }}</template
-                                >
+                                    · {{ inquiry.budget_range }}
+                                </template>
                             </p>
                         </div>
                     </li>
                 </ul>
                 <p
                     v-else
-                    class="rounded-xl border border-dashed border-sidebar-border/70 px-4 py-8 text-center text-sm text-muted-foreground dark:border-sidebar-border"
+                    class="rounded-xl border border-dashed border-sidebar-border/70 px-4 py-10 text-center text-sm text-muted-foreground dark:border-sidebar-border"
                 >
                     Nothing waiting. The inbox is clear.
                 </p>
             </section>
 
             <section aria-labelledby="upcoming" class="flex flex-col gap-3">
-                <h2 id="upcoming" class="text-sm font-medium">Next up</h2>
+                <h2 id="upcoming" class="py-1 text-sm font-medium">Next up</h2>
 
                 <ul
                     v-if="upcoming.length > 0"
@@ -196,7 +180,7 @@ defineOptions({
                 </ul>
                 <p
                     v-else
-                    class="rounded-xl border border-dashed border-sidebar-border/70 px-4 py-8 text-center text-sm text-muted-foreground dark:border-sidebar-border"
+                    class="rounded-xl border border-dashed border-sidebar-border/70 px-4 py-10 text-center text-sm text-muted-foreground dark:border-sidebar-border"
                 >
                     No milestones scheduled.
                 </p>

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { Form, Head, Link } from '@inertiajs/vue3';
+import { ArrowRight, Mail } from '@lucide/vue';
 import InquiryController from '@/actions/App/Http/Controllers/InquiryController';
 import ProjectController from '@/actions/App/Http/Controllers/ProjectController';
 import EmptyState from '@/components/EmptyState.vue';
-import Heading from '@/components/Heading.vue';
+import PageHeader from '@/components/PageHeader.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/money';
@@ -27,8 +28,7 @@ defineOptions({
     <Head title="Inquiries" />
 
     <div class="flex h-full flex-1 flex-col gap-6 p-4">
-        <Heading
-            variant="small"
+        <PageHeader
             title="Inquiries"
             description="Everything that came in through the site"
         />
@@ -39,41 +39,75 @@ defineOptions({
             description="Inquiries submitted on the public site land here, ready to be converted into a client and a project."
         />
 
-        <ul v-else class="space-y-4">
+        <ul v-else class="flex flex-col gap-4">
             <li
                 v-for="inquiry in inquiries"
                 :key="inquiry.id"
-                class="rounded-xl border border-sidebar-border/70 p-4 dark:border-sidebar-border"
+                class="overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
             >
-                <div class="flex flex-wrap items-start justify-between gap-3">
-                    <div class="space-y-1">
-                        <div class="flex flex-wrap items-center gap-3">
-                            <h2 class="font-medium">
-                                {{ inquiry.company ?? inquiry.name }}
-                            </h2>
-                            <StatusBadge :status="inquiry.status" />
-                        </div>
-                        <p class="text-xs text-muted-foreground">
-                            {{ inquiry.name }} · {{ inquiry.email }}
-                            <template v-if="inquiry.budget_range">
-                                · {{ inquiry.budget_range }}</template
+                <div
+                    class="flex flex-wrap items-start justify-between gap-4 p-5"
+                >
+                    <div class="flex min-w-0 gap-4">
+                        <span
+                            class="flex size-10 shrink-0 items-center justify-center rounded-full border border-sidebar-border/70 bg-muted text-xs font-medium text-muted-foreground dark:border-sidebar-border"
+                            aria-hidden="true"
+                        >
+                            {{
+                                (inquiry.company ?? inquiry.name)
+                                    .slice(0, 2)
+                                    .toUpperCase()
+                            }}
+                        </span>
+                        <div class="min-w-0 space-y-1">
+                            <div class="flex flex-wrap items-center gap-2.5">
+                                <h2 class="font-medium">
+                                    {{ inquiry.company ?? inquiry.name }}
+                                </h2>
+                                <StatusBadge :status="inquiry.status" />
+                            </div>
+                            <p
+                                class="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground"
                             >
-                            · {{ formatDate(inquiry.received_at) }}
-                        </p>
+                                <span>{{ inquiry.name }}</span>
+                                <span aria-hidden="true">·</span>
+                                <a
+                                    :href="`mailto:${inquiry.email}`"
+                                    class="inline-flex items-center gap-1 hover:underline"
+                                >
+                                    <Mail class="size-3" aria-hidden="true" />
+                                    {{ inquiry.email }}
+                                </a>
+                                <template v-if="inquiry.budget_range">
+                                    <span aria-hidden="true">·</span>
+                                    <span>{{ inquiry.budget_range }}</span>
+                                </template>
+                                <span aria-hidden="true">·</span>
+                                <span>{{
+                                    formatDate(inquiry.received_at)
+                                }}</span>
+                            </p>
+                        </div>
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-2">
-                        <Link
+                    <div class="flex shrink-0 flex-wrap items-center gap-2">
+                        <Button
                             v-if="inquiry.converted_project"
-                            :href="
-                                ProjectController.show(
-                                    inquiry.converted_project.id,
-                                ).url
-                            "
-                            class="text-sm hover:underline"
+                            as-child
+                            size="sm"
+                            variant="outline"
                         >
-                            Open {{ inquiry.converted_project.title }}
-                        </Link>
+                            <Link
+                                :href="
+                                    ProjectController.show(
+                                        inquiry.converted_project.id,
+                                    ).url
+                                "
+                            >
+                                Open project
+                                <ArrowRight aria-hidden="true" />
+                            </Link>
+                        </Button>
 
                         <!--
                             Converting is deliberately not offered twice. The
@@ -92,26 +126,30 @@ defineOptions({
                                 :disabled="processing"
                             >
                                 Convert to project
+                                <ArrowRight aria-hidden="true" />
                             </Button>
                         </Form>
                     </div>
                 </div>
 
-                <p class="mt-3 max-w-3xl text-sm text-muted-foreground">
+                <blockquote
+                    class="border-t border-sidebar-border/40 bg-muted/40 px-5 py-4 text-sm leading-relaxed text-muted-foreground"
+                >
                     {{ inquiry.message }}
-                </p>
+                </blockquote>
 
                 <Form
                     v-if="!inquiry.converted_project"
                     v-bind="InquiryController.updateStatus.form(inquiry.id)"
-                    class="mt-3 flex items-center gap-2"
+                    class="flex items-center gap-2 border-t border-sidebar-border/40 px-5 py-3"
                     v-slot="{ processing }"
                 >
                     <label
                         :for="`status-${inquiry.id}`"
                         class="text-xs text-muted-foreground"
-                        >Status</label
                     >
+                        Status
+                    </label>
                     <select
                         :id="`status-${inquiry.id}`"
                         name="status"
@@ -133,8 +171,9 @@ defineOptions({
                         size="sm"
                         variant="ghost"
                         :disabled="processing"
-                        >Update</Button
                     >
+                        Update
+                    </Button>
                 </Form>
             </li>
         </ul>

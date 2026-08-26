@@ -1,11 +1,21 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
+import { Plus } from '@lucide/vue';
 import { computed, ref } from 'vue';
 import ProjectController from '@/actions/App/Http/Controllers/ProjectController';
 import EmptyState from '@/components/EmptyState.vue';
-import Heading from '@/components/Heading.vue';
+import PageHeader from '@/components/PageHeader.vue';
 import StatusBadge from '@/components/StatusBadge.vue';
 import { Button } from '@/components/ui/button';
+import {
+    Table,
+    TableBody,
+    TableCaption,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 import { formatDate } from '@/lib/money';
 import type { ProjectRow, Status } from '@/types/studio';
 
@@ -26,6 +36,9 @@ const visible = computed(() =>
           ),
 );
 
+const countFor = (value: string) =>
+    props.projects.filter((project) => project.status.value === value).length;
+
 defineOptions({
     layout: {
         breadcrumbs: [
@@ -39,24 +52,30 @@ defineOptions({
     <Head title="Projects" />
 
     <div class="flex h-full flex-1 flex-col gap-6 p-4">
-        <div class="flex items-start justify-between gap-4">
-            <Heading
-                variant="small"
-                title="Projects"
-                description="Everything currently on the books"
-            />
-            <Button as-child size="sm">
-                <Link :href="ProjectController.create().url">New project</Link>
-            </Button>
-        </div>
+        <PageHeader
+            title="Projects"
+            description="Everything currently on the books"
+        >
+            <template #actions>
+                <Button as-child size="sm">
+                    <Link :href="ProjectController.create().url">
+                        <Plus aria-hidden="true" />
+                        New project
+                    </Link>
+                </Button>
+            </template>
+        </PageHeader>
 
-        <div v-if="projects.length > 0" class="flex flex-wrap gap-2">
+        <div v-if="projects.length > 0" class="flex flex-wrap gap-1.5">
             <Button
                 size="sm"
                 :variant="active === null ? 'secondary' : 'ghost'"
                 @click="active = null"
             >
                 All
+                <span class="ml-1 text-muted-foreground tabular-nums">{{
+                    projects.length
+                }}</span>
             </Button>
             <Button
                 v-for="status in statuses"
@@ -66,6 +85,9 @@ defineOptions({
                 @click="active = status.value"
             >
                 {{ status.label }}
+                <span class="ml-1 text-muted-foreground tabular-nums">{{
+                    countFor(status.value)
+                }}</span>
             </Button>
         </div>
 
@@ -89,63 +111,88 @@ defineOptions({
 
         <div
             v-else
-            class="overflow-x-auto rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
+            class="overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border"
         >
-            <table class="w-full text-sm">
-                <caption class="sr-only">
+            <Table>
+                <TableCaption class="sr-only">
                     Projects, their clients, status and milestone progress
-                </caption>
-                <thead
-                    class="border-b border-sidebar-border/70 text-left dark:border-sidebar-border"
-                >
-                    <tr class="text-muted-foreground">
-                        <th scope="col" class="px-4 py-3 font-medium">
-                            Project
-                        </th>
-                        <th scope="col" class="px-4 py-3 font-medium">
-                            Client
-                        </th>
-                        <th scope="col" class="px-4 py-3 font-medium">
-                            Status
-                        </th>
-                        <th scope="col" class="px-4 py-3 font-medium">
-                            Progress
-                        </th>
-                        <th scope="col" class="px-4 py-3 font-medium">Due</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr
-                        v-for="project in visible"
-                        :key="project.id"
-                        class="border-b border-sidebar-border/40 last:border-0 dark:border-sidebar-border/60"
-                    >
-                        <td class="px-4 py-3">
+                </TableCaption>
+                <TableHeader>
+                    <TableRow class="hover:bg-transparent">
+                        <TableHead>Project</TableHead>
+                        <TableHead class="hidden md:table-cell"
+                            >Client</TableHead
+                        >
+                        <TableHead class="w-28">Status</TableHead>
+                        <TableHead class="w-40">Progress</TableHead>
+                        <TableHead class="hidden w-32 sm:table-cell"
+                            >Due</TableHead
+                        >
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    <TableRow v-for="project in visible" :key="project.id">
+                        <TableCell>
                             <Link
                                 :href="ProjectController.show(project.id).url"
                                 class="font-medium hover:underline"
                             >
                                 {{ project.title }}
                             </Link>
-                        </td>
-                        <td class="px-4 py-3 text-muted-foreground">
-                            {{ project.client.name }}
-                        </td>
-                        <td class="px-4 py-3">
-                            <StatusBadge :status="project.status" />
-                        </td>
-                        <td
-                            class="px-4 py-3 text-muted-foreground tabular-nums"
+                            <p class="text-xs text-muted-foreground md:hidden">
+                                {{ project.client.name }}
+                            </p>
+                        </TableCell>
+                        <TableCell
+                            class="hidden text-muted-foreground md:table-cell"
                         >
-                            {{ project.done_milestones_count }} /
-                            {{ project.milestones_count }}
-                        </td>
-                        <td class="px-4 py-3 text-muted-foreground">
+                            {{ project.client.name }}
+                        </TableCell>
+                        <TableCell
+                            ><StatusBadge :status="project.status"
+                        /></TableCell>
+                        <TableCell>
+                            <div class="flex items-center gap-2.5">
+                                <div
+                                    class="h-1 w-16 overflow-hidden rounded-full bg-muted"
+                                    role="progressbar"
+                                    :aria-valuenow="
+                                        project.milestones_count === 0
+                                            ? 0
+                                            : Math.round(
+                                                  (project.done_milestones_count /
+                                                      project.milestones_count) *
+                                                      100,
+                                              )
+                                    "
+                                    :aria-valuemin="0"
+                                    :aria-valuemax="100"
+                                    :aria-label="`${project.title} progress`"
+                                >
+                                    <div
+                                        class="h-full rounded-full bg-foreground"
+                                        :style="{
+                                            width: `${project.milestones_count === 0 ? 0 : (project.done_milestones_count / project.milestones_count) * 100}%`,
+                                        }"
+                                    />
+                                </div>
+                                <span
+                                    class="text-xs text-muted-foreground tabular-nums"
+                                >
+                                    {{ project.done_milestones_count }}/{{
+                                        project.milestones_count
+                                    }}
+                                </span>
+                            </div>
+                        </TableCell>
+                        <TableCell
+                            class="hidden text-muted-foreground sm:table-cell"
+                        >
                             {{ formatDate(project.due_date) }}
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+                        </TableCell>
+                    </TableRow>
+                </TableBody>
+            </Table>
         </div>
     </div>
 </template>
