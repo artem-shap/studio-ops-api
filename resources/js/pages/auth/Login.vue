@@ -14,8 +14,9 @@ import { request } from '@/routes/password';
 
 defineOptions({
     layout: {
-        title: 'Log in to your account',
-        description: 'Enter your email and password below to log in',
+        title: 'Sign in',
+        description:
+            'Studio staff only. Ask whoever set up your account if you cannot get in.',
     },
 });
 
@@ -30,7 +31,7 @@ defineProps<{
 
     <div
         v-if="status"
-        class="mb-4 text-center text-sm font-medium text-green-600"
+        class="mb-4 rounded-lg border border-emerald-500/40 bg-emerald-50/60 px-4 py-3 text-sm font-medium text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300"
     >
         {{ status }}
     </div>
@@ -54,7 +55,6 @@ defineProps<{
                     autofocus
                     :tabindex="1"
                     autocomplete="email"
-                    placeholder="email@example.com"
                 />
                 <InputError :message="errors.email" />
             </div>
@@ -77,7 +77,6 @@ defineProps<{
                     required
                     :tabindex="2"
                     autocomplete="current-password"
-                    placeholder="Password"
                 />
                 <InputError :message="errors.password" />
             </div>
@@ -91,7 +90,7 @@ defineProps<{
 
             <Button
                 type="submit"
-                class="mt-4 w-full"
+                class="mt-2 w-full"
                 :tabindex="4"
                 :disabled="processing"
                 data-test="login-button"
