@@ -13,7 +13,15 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::delete('settings/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    /*
+     * No self-deletion. Accounts here are created by the studio with
+     * `php artisan staff:create`, and they are removed the same way with
+     * `php artisan staff:remove` — which refuses to remove the last one.
+     *
+     * Left in the panel this was a way for anyone signed in to lock the studio
+     * out of its own tool: registration is closed, so a deleted last account
+     * cannot be recreated from the browser.
+     */
 
     Route::get('settings/security', [SecurityController::class, 'edit'])
         ->middleware(RequirePassword::class)

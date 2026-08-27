@@ -314,3 +314,37 @@ after entering configuration by hand, read it back and diff it against what
 was intended, rather than trusting that the form stored what was typed.
 
 **Commit:** environment fix, no code change
+
+
+---
+
+## 15. Two doors left open on an internal tool
+
+**Generated:** nothing — both came with the starter kit, which is built for
+products where people sign themselves up. Neither was noticed while the panel
+was being designed, because both look like ordinary features.
+
+**Why they were wrong here:** this is a studio's internal tool, deployed with
+its credentials published in a README so a reviewer can look around.
+
+`/register` was open on the live site. Anyone could create an account and read
+every client, every project and every inquiry, and issue portal links.
+
+Settings offered account deletion with no guard, and the demo has exactly one
+account. Signing in with the published credentials and deleting that account
+would have made the panel permanently unreachable, because registration was the
+only way to make another one — and after closing registration, that stopped
+being a recovery path at all. The two problems made each other worse.
+
+**Fixed:** registration off, self-deletion off, and both replaced by console
+commands — `staff:create` and `staff:remove`, the latter refusing to remove the
+last account. Eight tests across the two.
+
+**The general shape:** a starter kit encodes assumptions about what kind of
+product it is building. Self-service registration and self-service deletion are
+correct for a SaaS signup flow and wrong for a tool five people share, and
+nothing about them looks wrong on the screen. They have to be found by asking
+what this particular product is, which is not a question a build or a test
+suite ever asks.
+
+**Commit:** the settings commit
