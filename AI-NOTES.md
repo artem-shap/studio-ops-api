@@ -348,3 +348,32 @@ what this particular product is, which is not a question a build or a test
 suite ever asks.
 
 **Commit:** the settings commit
+
+
+---
+
+## 16. A deleted placeholder took its directory with it
+
+**Generated:** nothing. This was a clean-up: the starter kit's placeholder unit
+test asserted `true` and was deleted along with the other scaffolding.
+
+**Why it broke:** deleting the only file in `tests/Unit` left the directory
+empty, and git does not track empty directories. `phpunit.xml` declares a Unit
+suite pointing at that path, so on a fresh checkout the directory does not
+exist and `artisan test` exits with an error before running anything.
+
+It passed locally every time, because the directory was still sitting on disk.
+The full suite ran green right up to the push. CI is the only place that ever
+sees a clean checkout, which is the whole reason it is worth having.
+
+**Fixed:** with a real unit test rather than a `.gitkeep`. The status enums are
+the one place a status is defined and both frontends render whatever they ship,
+so a case added without a label or a colour would reach the browser as an empty
+badge — and no feature test would notice, because none of them enumerate the
+cases. Four properties across all three enums, no database, no framework.
+
+**Also:** the PostgreSQL service's health check was `pg_isready` with no user,
+so it connected as a role called `root` and failed every ten seconds for the
+life of the job. It had been failing silently since the service was added.
+
+**Commit:** the unit test commit
