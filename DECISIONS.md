@@ -157,3 +157,76 @@ and a test pins it in both directions, because a hundredfold error looks
 plausible whichever way round it goes.
 
 **Cost.** Two conversions to keep straight, which is what the tests are for.
+
+
+---
+
+## 9. The panel has no sign-up and no self-deletion
+
+**Decision.** Staff accounts are created and removed from the console, with
+`php artisan staff:create` and `php artisan staff:remove`. The second refuses
+to remove the last account.
+
+**Over.** The starter kit's registration screen and the account-deletion
+control in settings, both of which arrived working.
+
+**Why.** They are correct for a product people sign themselves up for and wrong
+for a tool five people share. Anyone holding an account here reads every
+client, every project and every inquiry, and can issue portal links — so an
+open `/register` is not a convenience, it is the front door standing open. It
+was open on the live deployment.
+
+Self-deletion was the same mistake pointing the other way, and worse in
+combination: the demo runs on a single account whose credentials are published
+in the README, so signing in and deleting it would have made the panel
+permanently unreachable once registration was closed. Each fix made the other
+one necessary.
+
+**Cost.** Onboarding a colleague needs shell access rather than an invite link.
+At this size that is the correct amount of friction.
+
+---
+
+## 10. A Content-Security-Policy without nonces
+
+**Decision.** The public site sends a CSP that allows `'unsafe-inline'` for
+scripts and locks down everything else: `frame-ancestors 'none'`,
+`object-src 'none'`, `base-uri 'self'`, `form-action 'self'`,
+`upgrade-insecure-requests`.
+
+**Over.** A nonce-based policy, which is stronger for script injection.
+
+**Why.** A per-request nonce has to be injected by middleware, and that forces
+every page to render dynamically. The landing page is static on purpose — it is
+what keeps the site answering while the API is asleep — and trading that away
+for a tighter script directive is the wrong side of the deal on a page with no
+third-party scripts, no analytics and no external fonts.
+
+**Cost.** An injected inline script would execute. The mitigations above are
+what limit what it could then do.
+
+---
+
+## 11. Native elements over a component library
+
+**Decision.** The public site's form controls, buttons, accordion and mobile
+menu are native HTML with shared class strings. The registry stays configured
+for anything that genuinely needs behaviour, but nothing is kept installed that
+nothing uses.
+
+**Over.** The component library the site was first built on.
+
+**Why.** Measured, not assumed. The library cost 111 KB gzipped for an
+accordion and a menu — behaviour `details` and `summary` already implement,
+including keyboard support, the expanded state and the accessible name, and
+which keep working with JavaScript disabled. The four form primitives were
+styled native elements wearing a component runtime.
+
+The same audit found a validation library in the browser: the form imported its
+budget list from the module defining the Zod schema, and took Zod with it, on a
+page that does no client-side validation. Application JavaScript went from 74.6
+KB gzipped to 11.4.
+
+**Cost.** A dialog, a listbox or a date picker will have to be added back when
+one is genuinely needed, and the shared class strings are a weaker abstraction
+than components. Worth it at this size; it would not be on a larger surface.
