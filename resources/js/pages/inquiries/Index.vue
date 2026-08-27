@@ -71,9 +71,14 @@ defineOptions({
                             >
                                 <span>{{ inquiry.name }}</span>
                                 <span aria-hidden="true">·</span>
+                                <!--
+                                    An address is one unbroken string, so it
+                                    will not wrap on its own and would push the
+                                    card sideways on a narrow screen.
+                                -->
                                 <a
                                     :href="`mailto:${inquiry.email}`"
-                                    class="inline-flex items-center gap-1 hover:underline"
+                                    class="inline-flex items-center gap-1 break-all hover:underline"
                                 >
                                     <Mail class="size-3" aria-hidden="true" />
                                     {{ inquiry.email }}
