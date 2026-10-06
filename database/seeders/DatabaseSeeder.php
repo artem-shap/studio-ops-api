@@ -54,8 +54,14 @@ class DatabaseSeeder extends Seeder
                 $demoPortalToken ??= $token;
 
                 // Walk the statuses so the demo shows every state, rather than
-                // whatever the random draw happened to produce.
-                $statuses = ProjectStatus::cases();
+                // whatever the random draw happened to produce. The walk starts
+                // at Active so the published portal opens on work in progress.
+                $statuses = [
+                    ProjectStatus::Active,
+                    ProjectStatus::Draft,
+                    ProjectStatus::OnHold,
+                    ProjectStatus::Completed,
+                ];
                 $projectCount = $index < 2 ? 2 : 1;
 
                 for ($n = 0; $n < $projectCount; $n++) {
@@ -123,12 +129,22 @@ class DatabaseSeeder extends Seeder
     }
 
     /**
-     * A realistic inbox: mostly new, a few worked, one rejected.
+     * A realistic inbox: mostly new, a few worked, one rejected. Spread over
+     * the past fortnight, newest unanswered, so it does not read as seven
+     * messages that all arrived in the same second.
      */
     private function seedInquiries(): void
     {
-        Inquiry::factory()->count(4)->create();
-        Inquiry::factory()->count(2)->status(InquiryStatus::Contacted)->create();
-        Inquiry::factory()->status(InquiryStatus::Rejected)->create();
+        $received = fn (int $hoursAgo): array => ['created_at' => now()->subHours($hoursAgo)];
+
+        foreach ([3, 20, 46, 70] as $hoursAgo) {
+            Inquiry::factory()->create($received($hoursAgo));
+        }
+
+        foreach ([120, 190] as $hoursAgo) {
+            Inquiry::factory()->status(InquiryStatus::Contacted)->create($received($hoursAgo));
+        }
+
+        Inquiry::factory()->status(InquiryStatus::Rejected)->create($received(300));
     }
 }
