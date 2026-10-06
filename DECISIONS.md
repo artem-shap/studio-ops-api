@@ -230,3 +230,36 @@ KB gzipped to 11.4.
 **Cost.** A dialog, a listbox or a date picker will have to be added back when
 one is genuinely needed, and the shared class strings are a weaker abstraction
 than components. Worth it at this size; it would not be on a larger surface.
+
+---
+
+## 12. The panel gets the nonce the public site went without
+
+**Decision.** The admin panel sends a Content-Security-Policy whose
+`script-src` is `'self'` plus a per-response nonce, with no `'unsafe-inline'`,
+and `Strict-Transport-Security` on every secure response. The one inline
+script, which applies the theme before first paint, carries the nonce; Vite
+stamps it on everything it emits.
+
+**Over.** Matching the public site's policy, or leaving the panel without a
+CSP, as it was until 2026-10-06.
+
+**Why.** #10 turned nonces down because they force dynamic rendering, and the
+landing page is static on purpose. Every panel page is rendered per request
+anyway, so that cost is zero here, and the panel is where staff credentials are
+typed. It is the surface where a script that should not run would do the most
+damage.
+
+Styles keep `'unsafe-inline'`: menus and popovers are positioned with style
+attributes computed at runtime, and a nonce cannot cover an attribute.
+
+Verified in a real browser, not only in tests: headless Chrome signed in and
+went through every screen, a client-side navigation, an open menu and a theme
+change with zero violations. Removing the nonce from the template in the same
+run produced 24, which is what shows the check can see one.
+
+**Cost.** Anything that injects an inline script, such as a third-party widget
+or analytics snippet, now needs the nonce threaded to it or will be blocked.
+The policy is not sent while Vite's dev server is running, so `composer run
+dev` behaves as before; `upgrade-insecure-requests` is sent only over HTTPS for
+the same reason.
