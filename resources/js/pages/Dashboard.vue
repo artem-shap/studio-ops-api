@@ -91,7 +91,7 @@ defineOptions({
             />
         </div>
 
-        <div class="grid gap-6 lg:grid-cols-2">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <section
                 aria-labelledby="new-inquiries"
                 class="flex flex-col gap-3"
