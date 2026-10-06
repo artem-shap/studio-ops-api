@@ -13,8 +13,10 @@ class InquiryController extends Controller
     {
         $inquiry = Inquiry::query()->create($request->safe()->except(StoreInquiryRequest::HONEYPOT));
 
-        // Nothing about the inquiry goes back over the wire. The sender learns
-        // that it arrived, and that is all they need.
+        /**
+         * @description Nothing about the inquiry goes back over the wire. The sender learns
+         * that it arrived, and that is all they need.
+         */
         return response()->json(['id' => $inquiry->getKey()], JsonResponse::HTTP_CREATED);
     }
 }

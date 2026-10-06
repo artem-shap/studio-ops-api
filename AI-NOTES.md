@@ -377,3 +377,32 @@ so it connected as a role called `root` and failed every ten seconds for the
 life of the job. It had been failing silently since the service was added.
 
 **Commit:** the unit test commit
+
+## 17. A check that crashed read as a check that passed
+
+**Generated:** a dependency upgrade (Scramble 0.13.42 to 0.13.47, among
+forty others), verified locally before the push with
+`scramble:export ... >/dev/null 2>&1; git diff --stat -- openapi.json`.
+
+**Why it was wrong:** the export ran with the test database's environment
+variables still set, so it pointed at a database that does not exist on
+that server and crashed. With its output thrown away, the crash left
+`openapi.json` untouched, and an untouched file produces an empty diff. An
+empty diff was read as "the contract did not move". CI, with a real
+database, exported cleanly and failed on the drift.
+
+The drift itself: 0.13.47 stops copying a plain comment above a `return`
+into the response description. It now does so only when the comment carries
+an explicit tag. That is the better rule, since an implementation note
+should not become public documentation by accident, but it emptied the 201
+description on `POST /inquiries`.
+
+**Fixed:** the comment now carries `@description`, so publishing it is a
+decision written in the code. The exported contract is byte-identical to
+the one before the upgrade.
+
+**The rule taken from it:** a verification step whose output is discarded
+has not verified anything. Silence the noise after reading it once, never
+before.
+
+**Commit:** the Scramble description commit
