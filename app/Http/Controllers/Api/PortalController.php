@@ -24,7 +24,12 @@ class PortalController extends Controller
             abort(404);
         }
 
-        $client->load(['projects.milestones' => fn ($query) => $query->ordered()]);
+        // Without an explicit order Postgres returns rows in whatever order
+        // it finds them, and an edited project moves to the end of that.
+        $client->load([
+            'projects' => fn ($query) => $query->orderBy('id'),
+            'projects.milestones' => fn ($query) => $query->ordered(),
+        ]);
 
         return new PortalResource($client);
     }

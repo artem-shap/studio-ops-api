@@ -2,6 +2,7 @@
 
 use App\Actions\GrantPortalAccess;
 use App\Enums\MilestoneStatus;
+use App\Enums\ProjectStatus;
 use App\Models\Client;
 use App\Models\Milestone;
 use App\Models\Project;
@@ -58,6 +59,23 @@ it('orders milestones by position, not by insertion', function () {
         ->json('data.projects.0.milestones.*.title');
 
     expect($titles)->toBe(['Discovery', 'Build', 'Launch']);
+});
+
+it('lists projects in the order they were opened, even after one is edited', function () {
+    [$client, $token] = clientWithToken();
+    $first = Project::factory()->for($client)->status(ProjectStatus::Draft)->create(['title' => 'Booking system']);
+    Project::factory()->for($client)->create(['title' => 'Brand identity refresh']);
+
+    // Changing an indexed column writes a new row version at the end of the
+    // table and a new index entry, which is exactly where an unordered query
+    // starts returning it from.
+    $first->update(['status' => ProjectStatus::Active]);
+
+    $titles = $this->withHeaders(studioKey())
+        ->getJson(route('api.portal.show', $token))
+        ->json('data.projects.*.title');
+
+    expect($titles)->toBe(['Booking system', 'Brand identity refresh']);
 });
 
 it('never exposes the token hash', function () {
