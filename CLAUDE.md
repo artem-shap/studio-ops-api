@@ -21,7 +21,7 @@ The global `~/.claude/CLAUDE.md` mandates Astro, Supabase and Vercel for every n
 
 | Layer | Technology |
 |---|---|
-| Framework | Laravel 13.26 |
+| Framework | Laravel 13.34 |
 | PHP | 8.5 (`composer.json` requires ^8.3) |
 | Admin frontend | Vue 3.5 + **Inertia 3** + TypeScript |
 | Auth | Laravel **Fortify** (passkeys and two-factor available) |
