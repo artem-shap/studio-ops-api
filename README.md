@@ -4,7 +4,7 @@ Intake and project tracking for a small design studio.
 
 This repository is the **single source of truth**: the database, the business
 logic, the internal admin panel the studio works in, and the REST API consumed
-by [`studio-ops-web`](../studio-ops-web).
+by [`studio-ops-web`](https://github.com/artem-shap/studio-ops-web).
 
 > **Live admin panel:** https://studio-ops-api-6nny.onrender.com
 > **Demo login:** `demo@studioops.dev` / `studioops`
@@ -27,6 +27,30 @@ StudioOps takes the inquiry, turns it into a client and a project in one click,
 and gives that client a private link showing their own milestones — so the
 question stops being asked.
 
+## What it looks like
+
+The dashboard answers one question: what came in, what is running, and what is
+late.
+
+![The admin dashboard: open inquiries, active and on-hold projects, two overdue milestones, the inquiries waiting on a reply and the milestones due next](docs/screenshots/admin-dashboard.webp)
+
+Every inquiry from the public site, with its status and a one-click conversion
+into a client and a project. The conversion is transactional and idempotent: a
+double click creates one project, not two.
+
+![The inquiries inbox: each inquiry with the sender, budget and message, a status control and a Convert to project button](docs/screenshots/admin-inquiries.webp)
+
+A project's milestones are exactly what the client sees in their portal, in the
+same order.
+
+![A project page: budget, dates, progress and six milestones, each with a due date, a status and controls to reorder or remove it](docs/screenshots/admin-project.webp)
+
+<p>
+  <img src="docs/screenshots/admin-dashboard-dark.webp" width="560" alt="The admin dashboard in dark mode">
+  &nbsp;
+  <img src="docs/screenshots/admin-mobile.webp" width="200" alt="The admin dashboard on a phone">
+</p>
+
 ## Architecture
 
 ```
@@ -47,7 +71,7 @@ The browser never talks to this application. The Next.js server does, with an
 `X-Studio-Key` header. Consequently there is no CORS configuration in either
 repository, and no public write endpoint exposed to the internet.
 
-Eight decisions, including that one, are written up in [DECISIONS.md](DECISIONS.md).
+Twelve decisions, including that one, are written up in [DECISIONS.md](DECISIONS.md).
 
 ## Stack
 
