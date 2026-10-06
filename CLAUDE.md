@@ -47,7 +47,7 @@ Scaffolded with `laravel new --vue --pest --database=pgsql --pnpm --boost`.
 
 `laravel/boost` provides version-accurate context for this exact Laravel, Inertia, Fortify, Pest and Tailwind release, plus skills:
 
-`infer-conventions`, `fortify-development`, `laravel-best-practices`, `wayfinder-development`, `pest-testing`, `inertia-vue-development`, `tailwindcss-development`.
+`infer-conventions`, `fortify-development`, `laravel-best-practices`, `testing-best-practices`, `wayfinder-development`, `inertia-vue-development`, `tailwindcss-development`.
 
 **Consult the relevant Boost skill before writing code in an area you are unsure about**, rather than relying on training data. This project is built on Laravel 13, Inertia 3 and Pest 5, all of which are newer than most published examples. Guessing from memory here is the single most likely source of wrong output.
 

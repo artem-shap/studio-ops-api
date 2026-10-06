@@ -79,6 +79,12 @@ class DatabaseSeeder extends Seeder
     /**
      * Milestones follow the studio's real stages in order, and their statuses
      * follow the project's: a completed project has no pending milestones.
+     *
+     * Dates are anchored on the day of seeding, so a demo reset weeks later
+     * still reads like a live studio: finished stages in the past, the current
+     * one due shortly, the rest after it. The one deliberate exception is a
+     * project on hold, whose stalled stage slipped a week ago, which is what
+     * gives the dashboard's overdue count something true to show.
      */
     private function seedMilestones(Project $project): void
     {
@@ -90,6 +96,9 @@ class DatabaseSeeder extends Seeder
             ProjectStatus::Completed => count($stages),
         };
 
+        $currentStageDue = $project->status === ProjectStatus::OnHold ? -1 : 1;
+        $dueDates = [];
+
         foreach ($stages as $index => $stage) {
             $status = match (true) {
                 $index < $doneThrough => MilestoneStatus::Done,
@@ -97,13 +106,20 @@ class DatabaseSeeder extends Seeder
                 default => MilestoneStatus::Pending,
             };
 
+            $dueDates[] = $dueDate = now()->startOfDay()->addWeeks(($index - $doneThrough) * 2 + $currentStageDue);
+
             Milestone::factory()->for($project)->create([
                 'title' => $stage,
                 'status' => $status,
                 'position' => ($index + 1) * Milestone::POSITION_STEP,
-                'due_date' => now()->addWeeks(($index + 1) * 2),
+                'due_date' => $dueDate,
             ]);
         }
+
+        $project->update([
+            'start_date' => $dueDates[0]->copy()->subWeeks(2),
+            'due_date' => end($dueDates),
+        ]);
     }
 
     /**
