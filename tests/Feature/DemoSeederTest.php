@@ -53,3 +53,9 @@ it('ends a completed project in the past and an open one in the future', functio
             : expect($project->due_date->gt(today()))->toBeTrue();
     });
 });
+
+it('never gives two projects the same title', function () {
+    $titles = Project::query()->pluck('title');
+
+    expect($titles->unique())->toHaveCount($titles->count());
+});

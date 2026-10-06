@@ -12,9 +12,11 @@ use App\Models\Milestone;
 use App\Models\Project;
 use App\Models\User;
 use Database\Factories\MilestoneFactory;
+use Database\Factories\ProjectFactory;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use LogicException;
 
 class DatabaseSeeder extends Seeder
 {
@@ -42,12 +44,17 @@ class DatabaseSeeder extends Seeder
         $grantPortalAccess = new GrantPortalAccess;
         $demoPortalToken = null;
 
+        // Eight titles for eight projects, each used once: a random draw puts
+        // the same project name on two clients, and the dashboard shows both.
+        $work = array_map(null, array_keys(ProjectFactory::WORK), ProjectFactory::WORK);
+        shuffle($work);
+
         // Six clients, each with one or two projects, each project with a
         // milestone timeline that reads like real work rather than random rows.
         Client::factory()
             ->count(6)
             ->create()
-            ->each(function (Client $client, int $index) use ($grantPortalAccess, &$demoPortalToken): void {
+            ->each(function (Client $client, int $index) use ($grantPortalAccess, &$demoPortalToken, &$work): void {
                 $token = $grantPortalAccess->handle($client);
 
                 // The first client's link is the one the README publishes.
@@ -65,10 +72,13 @@ class DatabaseSeeder extends Seeder
                 $projectCount = $index < 2 ? 2 : 1;
 
                 for ($n = 0; $n < $projectCount; $n++) {
+                    [$title, $description] = array_shift($work)
+                        ?? throw new LogicException('The demo has more projects than distinct titles.');
+
                     $project = Project::factory()
                         ->for($client)
                         ->status($statuses[$this->projectsCreated++ % count($statuses)])
-                        ->create();
+                        ->create(['title' => $title, 'description' => $description]);
 
                     $this->seedMilestones($project);
                 }

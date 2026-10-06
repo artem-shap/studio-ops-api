@@ -14,11 +14,12 @@ class ProjectFactory extends Factory
 {
     /**
      * Title and description travel together: a client reading their own portal
-     * should see a sentence about their project, not Latin filler.
+     * should see a sentence about their project, not Latin filler. Public so
+     * the demo seeder can deal each title out once.
      *
      * @var array<string, string>
      */
-    private const WORK = [
+    public const WORK = [
         'Brand identity refresh' => 'New identity, applied across signage, packaging and the site, with a short guide the team can use without us.',
         'E-commerce replatform' => 'Moving the store off the current platform, keeping every URL and rebuilding checkout so it stops losing people at the payment step.',
         'Marketing site redesign' => 'A rebuild on a stack the in-house team can edit, with the case studies restructured so the strongest work is not three clicks deep.',
