@@ -67,4 +67,22 @@ class DashboardTest extends TestCase
                 ->where('upcoming.0.title', 'Sooner')
                 ->where('upcoming.1.title', 'Later'));
     }
+
+    public function test_a_milestone_due_today_is_not_yet_overdue(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        // The column is a date, so "today" is stored as midnight. The count
+        // and the red marker in the list must agree on what late means.
+        Milestone::factory()->for(Project::factory())->create([
+            'due_date' => today(),
+            'status' => MilestoneStatus::Pending,
+            'position' => 100,
+        ]);
+
+        $this->get(route('dashboard'))
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('stats.overdueMilestones', 0)
+                ->where('upcoming.0.overdue', false));
+    }
 }

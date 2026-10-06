@@ -52,7 +52,7 @@ class DashboardController extends Controller
                     'title' => $milestone->title,
                     'project' => ['id' => $milestone->project->id, 'title' => $milestone->project->title],
                     'due_date' => $milestone->due_date?->toDateString(),
-                    'overdue' => $milestone->due_date?->isPast() ?? false,
+                    'overdue' => $milestone->due_date?->lt(today()) ?? false,
                     'status' => [
                         'value' => $milestone->status->value,
                         'label' => $milestone->status->label(),
